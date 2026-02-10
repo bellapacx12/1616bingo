@@ -13,7 +13,7 @@ export default function CardManagementScreen({
   const [cardColor, setCardColor] = useState(DEFAULT_COLOR);
   const [bet, setBet] = useState(10);
   const [commission, setCommission] = useState("20%");
-  const [interval, setInterval] = useState("4 sec");
+  const [interval, setInterval] = useState("12 sec");
   const [pattern, setPattern] = useState("All");
   const [language, setLanguage] = useState("Amharic");
   const [balance, setBalance] = useState(0);
@@ -36,7 +36,7 @@ export default function CardManagementScreen({
       try {
         const shop_id = localStorage.getItem("shopid");
         const balanceRes = await fetch(
-          `https://one616api.onrender.com/balance/${shop_id}`
+          `https://one616api.onrender.com/balance/${shop_id}`,
         );
         if (!balanceRes.ok) throw new Error("Failed to fetch balance");
         const { balance } = await balanceRes.json();
@@ -142,41 +142,43 @@ export default function CardManagementScreen({
   const shopId = localStorage.getItem("shopid");
 
   return (
-    <div className="w-screen h-screen bg-slate-100 text-slate-800 flex overflow-hidden">
+    <div className="w-screen h-screen bg-slate-950 text-slate-200 flex overflow-hidden">
       {/* Sidebar Settings Panel */}
-      <aside className="w-72 bg-white border-r border-slate-200 p-6 flex flex-col gap-6 shadow-sm">
-        <div className="pb-4 border-b border-slate-200">
-          <h2 className="text-lg font-semibold text-slate-700">
+      <aside className="w-72 bg-slate-900 border-r border-slate-800 p-6 flex flex-col gap-6 shadow-xl">
+        <div className="pb-4 border-b border-slate-800">
+          <h2 className="text-lg font-semibold text-slate-300">
             Selected Cards
           </h2>
-          <p className="text-3xl font-bold text-slate-900">
+          <p className="text-4xl font-bold text-emerald-400">
             {selectedCardState.length}
           </p>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium mb-1">
+        <div className="bg-slate-800/60 backdrop-blur rounded-xl p-4">
+          <label className="block text-sm font-medium mb-1 text-slate-300">
             Bet Per Card (ETB)
           </label>
           <input
             type="number"
             value={bet}
             onChange={(e) => setBet(Number(e.target.value))}
-            className="w-full px-3 py-2 rounded-md border border-slate-300 focus:ring-2 focus:ring-slate-500"
+            className="w-full px-3 py-2 rounded-md border border-slate-700 bg-slate-900 focus:ring-2 focus:ring-emerald-500 outline-none"
           />
         </div>
 
         <div
-          className={`flex items-center gap-3 p-3 rounded-md border border-slate-300 bg-slate-50 ${
+          className={`flex items-center gap-3 p-4 rounded-xl border border-slate-800 bg-slate-800/60 backdrop-blur ${
             !blurred ? "blur-sm" : ""
           }`}
         >
           <div className="flex-1">
-            <label className="block text-sm font-medium mb-1">Commission</label>
+            <label className="block text-sm font-medium mb-1 text-slate-300">
+              Commission
+            </label>
             <select
               value={commission}
               onChange={(e) => setCommission(e.target.value)}
-              className="w-full px-3 py-2 rounded-md border border-slate-300"
+              className="w-full px-3 py-2 rounded-md border border-slate-700 bg-slate-900"
             >
               <option>20%</option>
               <option>30%</option>
@@ -184,35 +186,35 @@ export default function CardManagementScreen({
           </div>
           <button
             onClick={() => setBlurred(!blurred)}
-            className="px-3 py-2 text-sm rounded-md bg-slate-800 text-white hover:bg-slate-700"
+            className="px-3 py-2 text-sm rounded-md bg-cyan-500 hover:bg-cyan-400 text-black font-medium"
           >
             {blurred ? "Unblur" : "Blur"}
           </button>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium mb-1">
+        <div className="bg-slate-800/60 backdrop-blur rounded-xl p-4">
+          <label className="block text-sm font-medium mb-1 text-slate-300">
             Call Interval
           </label>
           <select
             value={interval}
             onChange={(e) => setInterval(e.target.value)}
-            className="w-full px-3 py-2 rounded-md border border-slate-300"
+            className="w-full px-3 py-2 rounded-md border border-slate-700 bg-slate-900"
           >
-            <option>4 sec</option>
-            <option>5 sec</option>
-            <option>7 sec</option>
+            <option>12 sec</option>
+            <option>15 sec</option>
+            <option>17 sec</option>
           </select>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium mb-1">
+        <div className="bg-slate-800/60 backdrop-blur rounded-xl p-4">
+          <label className="block text-sm font-medium mb-1 text-slate-300">
             Winning Pattern
           </label>
           <select
             value={pattern}
             onChange={(e) => setPattern(e.target.value)}
-            className="w-full px-3 py-2 rounded-md border border-slate-300"
+            className="w-full px-3 py-2 rounded-md border border-slate-700 bg-slate-900"
           >
             <option>All</option>
             <option>1 Line</option>
@@ -224,12 +226,14 @@ export default function CardManagementScreen({
           </select>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium mb-1">Language</label>
+        <div className="bg-slate-800/60 backdrop-blur rounded-xl p-4">
+          <label className="block text-sm font-medium mb-1 text-slate-300">
+            Language
+          </label>
           <select
             value={language}
             onChange={(e) => setLanguage(e.target.value)}
-            className="w-full px-3 py-2 rounded-md border border-slate-300"
+            className="w-full px-3 py-2 rounded-md border border-slate-700 bg-slate-900"
           >
             <option>Amharic</option>
             <option>English</option>
@@ -240,29 +244,25 @@ export default function CardManagementScreen({
       {/* Main Content */}
       <main className="flex-1 p-6 md:p-10 overflow-y-auto">
         <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-6">
-          {/* Left Title */}
-          <h1 className="text-2xl md:text-3xl font-bold text-slate-800">
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-emerald-400 via-cyan-400 to-teal-400 bg-clip-text text-transparent">
             1616 Bingo
           </h1>
 
-          {/* Right Controls */}
           <div className="flex flex-wrap justify-end gap-3">
-            {/* Reports Button */}
             <button
-              className="text-sm md:text-base font-medium text-white px-5 py-2.5 rounded-md bg-slate-800 hover:bg-slate-700"
+              className="px-5 py-2.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700"
               onClick={() => setShowReportModal(true)}
             >
               Reports
             </button>
 
-            {/* Start Game Button */}
             <button
               onClick={startGame}
               disabled={selectedCardState.length === 0}
-              className={`px-5 py-2.5 rounded-md font-semibold text-white shadow-md transition min-w-[150px] ${
+              className={`px-6 py-2.5 rounded-md font-semibold text-white shadow-lg transition min-w-[150px] ${
                 selectedCardState.length === 0
-                  ? "bg-slate-500 cursor-not-allowed"
-                  : "bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600"
+                  ? "bg-slate-700 cursor-not-allowed"
+                  : "bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:brightness-110 shadow-emerald-500/30"
               }`}
             >
               {isLoading ? (
@@ -275,27 +275,26 @@ export default function CardManagementScreen({
               )}
             </button>
 
-            {/* Logout Button */}
             <button
               onClick={handleLogout}
-              className="px-5 py-2.5 rounded-md bg-red-500 hover:bg-red-600 text-white font-medium transition"
+              className="px-5 py-2.5 rounded-md bg-rose-600 hover:bg-rose-500 text-white font-medium"
             >
               Logout
             </button>
           </div>
         </div>
 
-        <div className="grid grid-cols-10 md:grid-cols-12 lg:grid-cols-14 xl:grid-cols-16 gap-2 md:gap-3">
+        <div className="grid grid-cols-10 md:grid-cols-12 lg:grid-cols-14 xl:grid-cols-16 gap-3">
           {Array.from({ length: TOTAL_CARDS }, (_, i) => i + 1).map((num) => {
             const isSelected = selectedCardState.includes(num);
             return (
               <button
                 key={num}
                 onClick={() => toggleCard(num)}
-                className={`w-12 h-12 bg-slate-100 border border-slate-500 text-slate-800 md:w-14 md:h-14 rounded-lg flex items-center justify-center font-bold transition-all ${
+                className={`w-12 h-12 md:w-14 md:h-14 rounded-lg flex items-center justify-center font-mono font-bold transition-all border ${
                   isSelected
-                    ? "ring-2 ring-green-500 scale-105"
-                    : "hover:ring-2 hover:ring-slate-300"
+                    ? "bg-emerald-500/10 border-emerald-400 ring-2 ring-emerald-400 scale-105 shadow-lg shadow-emerald-500/20"
+                    : "bg-slate-800 border-slate-700 hover:bg-slate-700 hover:scale-105"
                 }`}
               >
                 {num}

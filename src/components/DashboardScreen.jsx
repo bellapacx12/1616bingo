@@ -30,88 +30,6 @@ const categoryColors = {
 };
 
 // Converts a number (1-75) to Amharic words
-const amharicNumbers = [
-  "",
-  "አንድ",
-  "ሁለት",
-  "ሶስት",
-  "አራት",
-  "አምስት",
-  "ስድስት",
-  "ሰባት",
-  "ስምንት",
-  "ዘጠኝ",
-  "አስር",
-  "አስራ አንድ",
-  "አስራ ሁለት",
-  "አስራ ሶስት",
-  "አስራ አራት",
-  "አስራ አምስት",
-  "አስራ ስድስት",
-  "አስራ ሰባት",
-  "አስራ ስምንት",
-  "አስራ ዘጠኝ",
-  "ሃያ",
-  "ሃያ አንድ",
-  "ሃያ ሁለት",
-  "ሃያ ሶስት",
-  "ሃያ አራት",
-  "ሃያ አምስት",
-  "ሃያ ስድስት",
-  "ሃያ ሰባት",
-  "ሃያ ስምንት",
-  "ሃያ ዘጠኝ",
-  "ሰላሳ",
-  "ሰላሳ አንድ",
-  "ሰላሳ ሁለት",
-  "ሰላሳ ሶስት",
-  "ሰላሳ አራት",
-  "ሰላሳ አምስት",
-  "ሰላሳ ስድስት",
-  "ሰላሳ ሰባት",
-  "ሰላሳ ስምንት",
-  "ሰላሳ ዘጠኝ",
-  "አርባ",
-  "አርባ አንድ",
-  "አርባ ሁለት",
-  "አርባ ሶስት",
-  "አርባ አራት",
-  "አርባ አምስት",
-  "አርባ ስድስት",
-  "አርባ ሰባት",
-  "አርባ ስምንት",
-  "አርባ ዘጠኝ",
-  "ሃምሳ",
-  "ሃምሳ አንድ",
-  "ሃምሳ ሁለት",
-  "ሃምሳ ሶስት",
-  "ሃምሳ አራት",
-  "ሃምሳ አምስት",
-  "ሃምሳ ስድስት",
-  "ሃምሳ ሰባት",
-  "ሃምሳ ስምንት",
-  "ሃምሳ ዘጠኝ",
-  "ስልሳ",
-  "ስልሳ አንድ",
-  "ስልሳ ሁለት",
-  "ስልሳ ሶስት",
-  "ስልሳ አራት",
-  "ስልሳ አምስት",
-  "ስልሳ ስድስት",
-  "ስልሳ ሰባት",
-  "ስልሳ ስምንት",
-  "ስልሳ ዘጠኝ",
-  "ሰባ",
-  "ሰባ አንድ",
-  "ሰባ ሁለት",
-  "ሰባ ሶስት",
-  "ሰባ አራት",
-  "ሰባ አምስት",
-];
-
-function getAmharicNumber(num) {
-  return amharicNumbers[num] || num.toString();
-}
 
 export default function DashboardScreen({
   roundId,
@@ -159,7 +77,7 @@ export default function DashboardScreen({
 
     for (const [cat, [start, end]] of Object.entries(ranges)) {
       for (let i = start; i <= end; i++) {
-        const path = `/voicemale/${cat}_${i}.m4a`;
+        const path = `/bingowav/${cat}_${i}.mp3`;
         const audio = new Audio(path);
         audioCache.current.set(path, audio);
       }
@@ -197,7 +115,7 @@ export default function DashboardScreen({
   }, []);
 
   const playSoundForCall = (category, number) => {
-    const audioPath = `/voicemale/${category.toLowerCase()}_${number}.m4a`;
+    const audioPath = `/bingowav/${category.toLowerCase()}_${number}.mp3`;
 
     if (audioRef.current) {
       audioRef.current.pause();
@@ -214,8 +132,9 @@ export default function DashboardScreen({
     }
 
     // Web Audio API setup for volume boost
-    const audioContext = new (window.AudioContext ||
-      window.webkitAudioContext)();
+    const audioContext = new (
+      window.AudioContext || window.webkitAudioContext
+    )();
     const gainNode = audioContext.createGain();
     gainNode.gain.value = 3.0; // 200% louder (1.0 = normal, 3.0 = 200% boost)
 
@@ -277,7 +196,7 @@ export default function DashboardScreen({
             voice.lang.startsWith(voiceLangPrefix) &&
             (voice.name.includes("Google") ||
               voice.name.includes("Microsoft") ||
-              voice.default)
+              voice.default),
         );
 
         if (selectedVoice) {
@@ -508,7 +427,7 @@ export default function DashboardScreen({
 
     const currentCalledNumbersSet = new Set(calledNumbers);
     const cardsToCheck = bingoCardsData.filter((card) =>
-      selectedCards.includes(card.card_id)
+      selectedCards.includes(card.card_id),
     );
 
     const newWinners = [];
@@ -536,7 +455,7 @@ export default function DashboardScreen({
         case "Inner Corners + Center":
           isWinner = checkInnerCornersAndCenterWin(
             cardGrid,
-            currentCalledNumbersSet
+            currentCalledNumbersSet,
           );
           break;
 
@@ -606,16 +525,16 @@ export default function DashboardScreen({
 
     if (lockedCards.includes(normalizedManualId)) {
       alert(
-        `Card ${normalizedManualId} has already passed. It cannot win anymore.`
+        `Card ${normalizedManualId} has already passed. It cannot win anymore.`,
       );
       return;
     }
 
     const selectedCardsData = bingoCardsData.filter((card) =>
-      selectedCards.includes(card.card_id)
+      selectedCards.includes(card.card_id),
     );
     const card = selectedCardsData.find(
-      (c) => c.card_id === normalizedManualId
+      (c) => c.card_id === normalizedManualId,
     );
 
     if (!card) {
@@ -678,7 +597,7 @@ export default function DashboardScreen({
 
         const lineCoords = getWinningLineCoords(
           cardGrid,
-          currentCalledNumbersSet
+          currentCalledNumbersSet,
         );
         if (lineCoords.length >= 5) {
           allCoords.push(...lineCoords);
@@ -739,7 +658,7 @@ export default function DashboardScreen({
     //console.log("Checking for wins with winning pattern:", winningPattern);
     const currentCalledNumbersSet = new Set(calledNumbers);
     const cardsToCheck = bingoCardsData.filter((card) =>
-      selectedCards.includes(card.card_id)
+      selectedCards.includes(card.card_id),
     );
     const wincardid = null;
     let isWinner = false;
@@ -770,7 +689,7 @@ export default function DashboardScreen({
         case "Inner Corners + Center":
           isWinner = checkInnerCornersAndCenterWin(
             cardGrid,
-            currentCalledNumbersSet
+            currentCalledNumbersSet,
           );
           break;
         case "All":
@@ -791,7 +710,7 @@ export default function DashboardScreen({
         if (passedCards.includes(card.card_id)) {
           // Second time it's winning — lock it
           console.log(
-            `🔒 Card ${wincardid} locked (won again after being passed)`
+            `🔒 Card ${wincardid} locked (won again after being passed)`,
           );
           setLockedCards((prev) => [...prev, card.card_id]);
           break;
@@ -830,7 +749,7 @@ export default function DashboardScreen({
     if (mode !== "manual") {
       const currentCalledNumbersSet = new Set(updatedCalledNumbers);
       const cardsToCheck = bingoCardsData.filter((card) =>
-        selectedCards.includes(card.card_id)
+        selectedCards.includes(card.card_id),
       );
 
       let winners = [];
@@ -857,7 +776,7 @@ export default function DashboardScreen({
           case "Inner Corners + Center":
             isWinner = checkInnerCornersAndCenterWin(
               grid,
-              currentCalledNumbersSet
+              currentCalledNumbersSet,
             );
             break;
           case "All":
@@ -911,7 +830,7 @@ export default function DashboardScreen({
       "Setting up interval with isRunning:",
       isRunning,
       "and winningCards:",
-      winningCards.length
+      winningCards.length,
     );
     // Set new interval only if running and no winners
     if (isRunning && !gameOverRef.current) {
@@ -934,12 +853,13 @@ export default function DashboardScreen({
 
     // Play sound with Web Audio API for volume boost
     const audio = new Audio(
-      !isRunning ? "/game/start_game.m4a" : "/game/pause_game.m4a"
+      !isRunning ? "/game/start_game.m4a" : "/game/pause_game.m4a",
     );
 
     // Create AudioContext and GainNode
-    const audioContext = new (window.AudioContext ||
-      window.webkitAudioContext)();
+    const audioContext = new (
+      window.AudioContext || window.webkitAudioContext
+    )();
     const gainNode = audioContext.createGain();
     gainNode.gain.value = 3.0; // 200% louder (1.0 = normal, 3.0 = 300% volume)
 
@@ -985,25 +905,28 @@ export default function DashboardScreen({
   };
 
   return (
-    <div className="w-screen h-screen bg-slate-100 p-6 text-slate-800 font-sans overflow-hidden">
+    <div className="w-screen h-screen bg-slate-950 p-6 text-slate-200 font-sans overflow-hidden">
       {/* Header */}
-      <div className="flex justify-between items-center mb-6 border-b border-slate-300 pb-4">
-        <h1 className="text-3xl font-bold text-slate-900 tracking-wide">
+      <div className="flex justify-between items-center mb-6 border-b border-slate-800 pb-4">
+        <h1 className="text-3xl font-bold tracking-wide bg-gradient-to-r from-emerald-400 via-cyan-400 to-teal-400 bg-clip-text text-transparent">
           1616 Bingo
         </h1>
-        <div className="flex items-center space-x-6">
-          <div className="text-slate-700 font-medium text-lg flex items-center">
-            <span className="mr-2 text-slate-500">Calls:</span>{" "}
-            {calledNumbers.length}/75
+
+        <div className="flex items-center space-x-6 text-lg">
+          <div className="font-medium flex items-center">
+            <span className="mr-2 text-slate-400">Calls:</span>
+            <span className="text-cyan-400">{calledNumbers.length}/75</span>
           </div>
-          <div className="text-green-600 font-semibold text-lg flex items-center">
-            <span className="mr-2 text-slate-500">Prize:</span>{" "}
-            {prize.toFixed(2)} ETB
+
+          <div className="font-semibold flex items-center">
+            <span className="mr-2 text-slate-400">Prize:</span>
+            <span className="text-emerald-400">{prize.toFixed(2)} ETB</span>
           </div>
+
           {winningCards.length > 0 && (
-            <div className="text-red-600 font-semibold text-lg flex items-center">
-              <span className="mr-2 text-slate-500">Winners:</span>{" "}
-              {winningCards.length}
+            <div className="font-semibold flex items-center">
+              <span className="mr-2 text-slate-400">Winners:</span>
+              <span className="text-rose-400">{winningCards.length}</span>
             </div>
           )}
         </div>
@@ -1012,16 +935,17 @@ export default function DashboardScreen({
       {/* Content Area */}
       <div className="flex space-x-6 h-[calc(100vh-144px)]">
         {/* Left Panel */}
-        <div className="w-80 bg-white rounded-xl p-6 flex flex-col justify-between shadow-md border border-slate-200">
+        <div className="w-80 bg-slate-900 rounded-xl p-6 flex flex-col justify-between shadow-xl border border-slate-800">
           <div>
-            <div className="text-base mb-3 text-slate-600 font-medium">
+            <div className="text-base mb-3 text-slate-400 font-medium">
               Last 5 Called Numbers
             </div>
+
             <div className="grid grid-cols-5 gap-3">
               {[...calledNumbers.slice(0, 5)].map((n, i) => (
                 <div
                   key={i}
-                  className="text-center p-3 bg-slate-100 rounded-lg text-lg font-semibold border border-slate-300"
+                  className="text-center p-3 bg-slate-800 rounded-lg text-lg font-semibold border border-slate-700"
                 >
                   {n ? n.toString().padStart(2, "0") : "--"}
                 </div>
@@ -1029,24 +953,25 @@ export default function DashboardScreen({
             </div>
           </div>
 
-          {/* Auto/Manual + Input */}
-          <div className="mt-6 mb-2 p-4 border border-slate-200 rounded-md bg-slate-50 w-full">
-            <div className="mb-4 flex items-center gap-6 text-slate-700 font-medium">
+          {/* Auto/Manual */}
+          <div className="mt-6 mb-2 p-4 border border-slate-800 rounded-xl bg-slate-800/60 backdrop-blur w-full">
+            <div className="mb-4 flex items-center gap-6 text-slate-300 font-medium">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="radio"
                   checked={mode === "auto"}
                   onChange={() => setMode("auto")}
-                  className="form-radio text-slate-600"
+                  className="accent-emerald-500"
                 />
                 Auto
               </label>
+
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="radio"
                   checked={mode === "manual"}
                   onChange={() => setMode("manual")}
-                  className="form-radio text-slate-600"
+                  className="accent-emerald-500"
                 />
                 Manual
               </label>
@@ -1059,11 +984,12 @@ export default function DashboardScreen({
                   placeholder="Enter Card ID"
                   value={manualCardId}
                   onChange={(e) => setManualCardId(e.target.value)}
-                  className="flex-grow w-full bg-white border border-slate-300 text-slate-800 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-500 min-w-0"
+                  className="flex-grow w-full bg-slate-900 border border-slate-700 text-slate-200 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500 min-w-0"
                 />
+
                 <button
                   onClick={handleManualCheck}
-                  className="w-full sm:w-auto bg-slate-800 hover:bg-slate-700 text-white font-semibold px-4 py-2 rounded transition"
+                  className="w-full sm:w-auto bg-cyan-500 hover:bg-cyan-400 text-black font-semibold px-4 py-2 rounded transition"
                 >
                   Check
                 </button>
@@ -1075,8 +1001,10 @@ export default function DashboardScreen({
           <div className="grid grid-cols-2 gap-4 mt-6">
             <button
               onClick={togglePlayPause}
-              className={`flex items-center justify-center px-4 py-3 rounded-xl font-semibold shadow transition transform hover:scale-105 ${
-                isRunning ? "bg-red-600 text-white" : "bg-slate-800 text-white"
+              className={`flex items-center justify-center px-4 py-3 rounded-xl font-semibold shadow-lg transition transform hover:scale-105 ${
+                isRunning
+                  ? "bg-rose-600 text-white"
+                  : "bg-gradient-to-r from-emerald-500 to-cyan-500 text-black"
               }`}
             >
               {isRunning ? (
@@ -1089,7 +1017,7 @@ export default function DashboardScreen({
 
             <button
               onClick={restartGame}
-              className="flex items-center justify-center bg-slate-700 text-white px-4 py-3 rounded-xl font-semibold shadow hover:bg-slate-600"
+              className="flex items-center justify-center bg-slate-800 text-slate-200 px-4 py-3 rounded-xl font-semibold shadow hover:bg-slate-700"
             >
               <RotateCcw size={20} className="mr-2" />
               Restart
@@ -1097,7 +1025,7 @@ export default function DashboardScreen({
 
             <button
               onClick={requestFullScreen}
-              className="col-span-2 flex items-center justify-center bg-slate-700 text-white px-4 py-3 rounded-xl font-semibold shadow hover:bg-slate-600"
+              className="col-span-2 flex items-center justify-center bg-slate-800 text-slate-200 px-4 py-3 rounded-xl font-semibold shadow hover:bg-slate-700"
             >
               <Maximize2 size={20} className="mr-2" />
               Fullscreen
@@ -1106,13 +1034,14 @@ export default function DashboardScreen({
         </div>
 
         {/* Number Grid */}
-        <div className="flex-1 p-6 rounded-xl bg-white shadow-md border border-slate-200 overflow-y-auto">
-          <div className="grid grid-cols-16 gap-2 text-center font-semibold text-slate-800 text-base">
+        <div className="flex-1 p-6 rounded-xl bg-slate-900 shadow-xl border border-slate-800 overflow-y-auto">
+          <div className="grid grid-cols-16 gap-2 text-center font-semibold text-base">
             {Object.entries(CATEGORIES).map(([letter, [min, max]]) => (
               <React.Fragment key={letter}>
-                <div className="col-span-1 flex items-center justify-center text-xl font-bold uppercase bg-slate-100 border border-slate-300 rounded shadow">
+                <div className="col-span-1 flex items-center justify-center text-xl font-bold uppercase bg-slate-800 border border-slate-700 rounded">
                   {letter}
                 </div>
+
                 {Array.from({ length: 15 }).map((_, colIndex) => {
                   const num = min + colIndex;
                   const isCurrent = num === currentCall;
@@ -1121,16 +1050,14 @@ export default function DashboardScreen({
                   return (
                     <div
                       key={num}
-                      className={`
-                    col-span-1 py-2 rounded-lg text-xl font-bold flex items-center justify-center cursor-pointer transition-all
-                    ${
-                      isCurrent
-                        ? "bg-yellow-300 text-slate-900 ring-2 ring-yellow-500"
-                        : isCalled
-                        ? "bg-slate-700 text-white"
-                        : "bg-slate-100 text-slate-800 border border-slate-300"
-                    }
-                  `}
+                      className={`col-span-1 py-2 rounded-lg text-xl font-bold flex items-center justify-center cursor-pointer transition-all
+                  ${
+                    isCurrent
+                      ? "bg-amber-400 text-black ring-2 ring-amber-300"
+                      : isCalled
+                        ? "bg-emerald-400 text-slate-800"
+                        : "bg-slate-800 text-slate-300 border border-slate-700"
+                  }`}
                       style={{ height: "48px" }}
                     >
                       {num.toString().padStart(2, "0")}
@@ -1140,8 +1067,9 @@ export default function DashboardScreen({
               </React.Fragment>
             ))}
           </div>
+
           <div className="justify-self-center mt-16">
-            <div className="bg-slate-100 text-slate-800 rounded-full p-16 w-80 text-center text-6xl font-extrabold tracking-widest shadow-inner border border-slate-300">
+            <div className="bg-slate-800 text-emerald-400 rounded-full p-16 w-80 text-center text-6xl font-extrabold tracking-widest shadow-inner border border-slate-700">
               {currentCall
                 ? `${getCategory(currentCall)}${currentCall
                     .toString()
