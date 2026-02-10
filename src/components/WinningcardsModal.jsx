@@ -1,28 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { XCircle } from "react-feather";
 
-// BINGO categories
 const CATEGORIES = {
   B: [1, 15],
   I: [16, 30],
   N: [31, 45],
   G: [46, 60],
   O: [61, 75],
-};
-
-const getCategory = (num) => {
-  for (const [key, [min, max]] of Object.entries(CATEGORIES)) {
-    if (num >= min && num <= max) return key;
-  }
-  return "";
-};
-
-const categoryColors = {
-  B: "bg-blue-800 text-blue-200 border-blue-700",
-  I: "bg-indigo-800 text-indigo-200 border-indigo-700",
-  N: "bg-purple-800 text-purple-200 border-purple-700",
-  G: "bg-green-800 text-green-200 border-green-700",
-  O: "bg-orange-800 text-orange-200 border-orange-700",
 };
 
 const getCardGrid = (card) => {
@@ -37,9 +21,8 @@ const getCardGrid = (card) => {
   return grid;
 };
 
-const isMarked = (num, calledNumbersSet) => {
-  return num === null || calledNumbersSet.has(num);
-};
+const isMarked = (num, calledNumbersSet) =>
+  num === null || calledNumbersSet.has(num);
 
 export default function WinningCardsModal({
   isOpen,
@@ -53,13 +36,25 @@ export default function WinningCardsModal({
 }) {
   const [checkedFailedCards, setCheckedFailedCards] = useState([]);
 
-  const isWinningCell = (cardId, rowIdx, colIdx) => {
-    const pattern = winningPatterns[cardId];
-    if (!pattern) return false;
-    return pattern.some(([r, c]) => r === rowIdx && c === colIdx);
+  const isCardChecked = (cardId) => checkedFailedCards.includes(cardId);
+
+  const handleMarkAsChecked = (cardId) => {
+    if (!isCardChecked(cardId))
+      setCheckedFailedCards((prev) => [...prev, cardId]);
+    playCheckSound();
   };
 
-  // Play audio once when modal opens with winners
+  const playCheckSound = () => {
+    try {
+      const audio = new Audio("/game/lock.m4a");
+      audio.volume = 1;
+      audio.play().catch((e) => console.log("Audio play failed:", e));
+    } catch (error) {
+      console.log("Sound playback error:", error);
+    }
+  };
+
+  // ✅ Audio logic preserved
   useEffect(() => {
     let shouldPlay = false;
     let audioPath = "";
@@ -75,11 +70,10 @@ export default function WinningCardsModal({
     if (shouldPlay) {
       const audio = new Audio(audioPath);
 
-      // Create AudioContext and GainNode for volume boost
+      // Boost volume using WebAudio
       const audioContext = new (
         window.AudioContext || window.webkitAudioContext
       )();
-
       const gainNode = audioContext.createGain();
       gainNode.gain.value = 3.0;
 
@@ -87,48 +81,30 @@ export default function WinningCardsModal({
       source.connect(gainNode);
       gainNode.connect(audioContext.destination);
 
-      audio.play().catch((err) => {
-        console.warn("Audio play blocked by browser:", err);
-      });
+      audio
+        .play()
+        .catch((err) => console.warn("Audio play blocked by browser:", err));
     }
   }, [isOpen, status, winningCardIds]);
 
   if (!isOpen) return null;
 
-  // ✅ Use correct cards based on status
   const displayedCards =
     status === "failed"
       ? allBingoCards.filter((card) => failedCards.includes(card.card_id))
       : allBingoCards.filter((card) => winningCardIds.includes(card.card_id));
 
-  const isCardChecked = (cardId) => checkedFailedCards.includes(cardId);
-
-  const handleMarkAsChecked = (cardId) => {
-    if (!isCardChecked(cardId)) {
-      setCheckedFailedCards((prev) => [...prev, cardId]);
-    }
-    playCheckSound();
-  };
-  // Function to play check sound from public folder
-  const playCheckSound = () => {
-    try {
-      // Play sound from public folder
-      const audio = new Audio("/game/lock.m4a"); // Adjust path if needed
-      audio.volume = 1; // Adjust volume as needed (0.0 to 1.0)
-      audio.play().catch((e) => console.log("Audio play failed:", e));
-    } catch (error) {
-      console.log("Sound playback error:", error);
-    }
+  const getWinningSet = (cardId) => {
+    const pattern = winningPatterns[cardId] || [];
+    return new Set(pattern.map(([r, c]) => `${r}-${c}`));
   };
 
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
-      {/* Neon Background */}
       <div className="absolute inset-0 bg-black/80 backdrop-blur-md" />
 
       <div className="relative w-full max-w-6xl max-h-[90vh] overflow-y-auto p-[1px] rounded-2xl bg-gradient-to-r from-cyan-500 via-fuchsia-600 to-purple-700 shadow-[0_0_40px_rgba(0,255,255,0.2)]">
         <div className="relative bg-[#05070d]/95 rounded-2xl border border-cyan-400/20 p-8 text-white">
-          {/* Close */}
           <button
             onClick={onClose}
             className="absolute top-4 right-4 text-cyan-300 hover:text-red-400 transition"
@@ -137,7 +113,6 @@ export default function WinningCardsModal({
             <XCircle size={28} />
           </button>
 
-          {/* Title */}
           <h2
             className={`text-4xl font-extrabold mb-6 text-center tracking-wider ${
               status === "won"
@@ -146,12 +121,8 @@ export default function WinningCardsModal({
             }`}
           >
             {status === "won"
-              ? `🎉 ${displayedCards.length} Winning Card${
-                  displayedCards.length > 1 ? "s" : ""
-                }!`
-              : `❌ ${displayedCards.length} Failed Card${
-                  displayedCards.length > 1 ? "s" : ""
-                }!`}
+              ? `🎉 ${displayedCards.length} Winning Card${displayedCards.length > 1 ? "s" : ""}!`
+              : `❌ ${displayedCards.length} Failed Card${displayedCards.length > 1 ? "s" : ""}!`}
           </h2>
 
           {displayedCards.length === 0 ? (
@@ -172,6 +143,7 @@ export default function WinningCardsModal({
                   const cardCategoryColumns = ["B", "I", "N", "G", "O"];
                   const alreadyChecked =
                     status === "failed" && isCardChecked(card.card_id);
+                  const winningSet = getWinningSet(card.card_id);
 
                   return (
                     <div
@@ -217,36 +189,41 @@ export default function WinningCardsModal({
                         ))}
                       </div>
 
-                      {/* GRID — COLORS LEFT UNTOUCHED */}
+                      {/* GRID COLORS */}
                       <div className="space-y-1 w-full max-w-xs">
                         {cardGrid.map((row, rowIndex) => (
                           <div
                             key={rowIndex}
                             className="grid grid-cols-5 gap-1"
                           >
-                            {row.map((num, colIndex) => (
-                              <div
-                                key={`${card.card_id}-r${rowIndex}-c${colIndex}`}
-                                className={`p-1 text-center font-semibold rounded-sm border border-white/10 text-sm
-                              ${
-                                num === null
-                                  ? "bg-gray-700 text-white/80"
-                                  : isWinningCell(
-                                        card.card_id,
-                                        rowIndex,
-                                        colIndex,
-                                      )
-                                    ? "bg-green-600 text-white font-bold animate-pulse"
-                                    : isMarked(num, calledNumbersSet)
-                                      ? "bg-red-600 text-white"
-                                      : "bg-white/5 text-white/60"
-                              }`}
-                              >
-                                {num === null
-                                  ? "FREE"
-                                  : num.toString().padStart(2, "0")}
-                              </div>
-                            ))}
+                            {row.map((num, colIndex) => {
+                              let cellClass =
+                                "p-1 text-center font-semibold rounded-sm border border-white/10 text-sm";
+
+                              if (num === null) {
+                                cellClass += " bg-gray-700 text-white/80";
+                              } else if (
+                                winningSet.has(`${rowIndex}-${colIndex}`)
+                              ) {
+                                cellClass +=
+                                  " bg-green-600 text-white font-bold animate-pulse";
+                              } else if (calledNumbersSet.has(num)) {
+                                cellClass += " bg-red-600 text-white";
+                              } else {
+                                cellClass += " bg-white/5 text-white/60";
+                              }
+
+                              return (
+                                <div
+                                  key={`${card.card_id}-r${rowIndex}-c${colIndex}`}
+                                  className={cellClass}
+                                >
+                                  {num === null
+                                    ? "FREE"
+                                    : num.toString().padStart(2, "0")}
+                                </div>
+                              );
+                            })}
                           </div>
                         ))}
                       </div>

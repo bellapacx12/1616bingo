@@ -201,6 +201,8 @@ export default function CardManagementScreen({
             onChange={(e) => setInterval(e.target.value)}
             className="w-full px-3 py-2 rounded-md border border-slate-700 bg-slate-900"
           >
+            <option>7 sec</option>
+            <option>9 sec</option>
             <option>12 sec</option>
             <option>15 sec</option>
             <option>17 sec</option>
