@@ -109,7 +109,6 @@ export default function DashboardScreen({
       })
       .catch((err) => {
         console.error("Error fetching shop data:", err);
-        alert("Connection problem — using local default.");
         setBingoCards(bingoCardsData); // fallback to default
       });
   }, []);
