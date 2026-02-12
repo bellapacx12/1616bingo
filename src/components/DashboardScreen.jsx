@@ -383,6 +383,77 @@ export default function DashboardScreen({
     return coords;
   };
 
+  const getCompletedLinesWithCoords = (grid, calledNumbersSet) => {
+    const lines = [];
+
+    // rows
+    for (let i = 0; i < 5; i++) {
+      if (grid[i].every((num) => isMarked(num, calledNumbersSet))) {
+        lines.push({
+          type: "row",
+          index: i,
+          coords: Array.from({ length: 5 }, (_, j) => [i, j]),
+        });
+      }
+    }
+
+    // columns
+    for (let j = 0; j < 5; j++) {
+      let complete = true;
+
+      for (let i = 0; i < 5; i++) {
+        if (!isMarked(grid[i][j], calledNumbersSet)) {
+          complete = false;
+          break;
+        }
+      }
+
+      if (complete) {
+        lines.push({
+          type: "col",
+          index: j,
+          coords: Array.from({ length: 5 }, (_, i) => [i, j]),
+        });
+      }
+    }
+
+    // diagonal top-left -> bottom-right
+    let diag1 = true;
+    for (let i = 0; i < 5; i++) {
+      if (!isMarked(grid[i][i], calledNumbersSet)) {
+        diag1 = false;
+        break;
+      }
+    }
+
+    if (diag1) {
+      lines.push({
+        type: "diag",
+        index: 0,
+        coords: Array.from({ length: 5 }, (_, i) => [i, i]),
+      });
+    }
+
+    // diagonal top-right -> bottom-left
+    let diag2 = true;
+    for (let i = 0; i < 5; i++) {
+      if (!isMarked(grid[i][4 - i], calledNumbersSet)) {
+        diag2 = false;
+        break;
+      }
+    }
+
+    if (diag2) {
+      lines.push({
+        type: "diag",
+        index: 1,
+        coords: Array.from({ length: 5 }, (_, i) => [i, 4 - i]),
+      });
+    }
+
+    return lines;
+  };
+
   const getFullHouseCoords = () => {
     const coords = [];
     for (let i = 0; i < 5; i++) {
@@ -416,6 +487,41 @@ export default function DashboardScreen({
     [3, 3],
     [2, 2],
   ];
+  const linesCross = (lineA, lineB) => {
+    return lineA.coords.some((a) =>
+      lineB.coords.some((b) => a[0] === b[0] && a[1] === b[1]),
+    );
+  };
+  const findNonCrossingSets = (lines, requiredCount) => {
+    const results = [];
+
+    const backtrack = (start, combo) => {
+      if (combo.length === requiredCount) {
+        results.push([...combo]);
+        return;
+      }
+
+      for (let i = start; i < lines.length; i++) {
+        const candidate = lines[i];
+
+        const crosses = combo.some((existing) =>
+          linesCross(existing, candidate),
+        );
+
+        if (!crosses) {
+          combo.push(candidate);
+          backtrack(i + 1, combo);
+          combo.pop();
+        }
+      }
+    };
+
+    backtrack(0, []);
+    return results;
+  };
+  const dedupeCoords = (coords) => {
+    return [...new Map(coords.map((c) => [c.join(","), c])).values()];
+  };
 
   const gameOverRef = useRef(false);
   // Main win checking function
@@ -503,8 +609,167 @@ export default function DashboardScreen({
         }
         break;
       }
+      case "2 Vertical + 1 Horizontal": {
+        const lines = getCompletedLinesWithCoords(
+          cardGrid,
+          currentCalledNumbersSet,
+        );
+
+        const verticals = lines.filter((l) => l.type === "col");
+        const horizontals = lines.filter((l) => l.type === "row");
+
+        if (verticals.length >= 2 && horizontals.length >= 1) {
+          isWinner = true;
+          winningCoords = [
+            ...verticals.slice(0, 2).flatMap((l) => l.coords),
+            ...horizontals[0].coords,
+          ];
+        }
+        break;
+      }
+      case "4 Lines Any Direction": {
+        const lines = getCompletedLinesWithCoords(
+          cardGrid,
+          currentCalledNumbersSet,
+        );
+
+        if (lines.length >= 4) {
+          isWinner = true;
+          winningCoords = lines.slice(0, 4).flatMap((l) => l.coords);
+        }
+        break;
+      }
+      case "5 Lines Any Direction": {
+        const lines = getCompletedLinesWithCoords(
+          cardGrid,
+          currentCalledNumbersSet,
+        );
+
+        if (lines.length >= 5) {
+          isWinner = true;
+          winningCoords = lines.slice(0, 5).flatMap((l) => l.coords);
+        }
+        break;
+      }
+      case "6 Lines Any Direction": {
+        const lines = getCompletedLinesWithCoords(
+          cardGrid,
+          currentCalledNumbersSet,
+        );
+
+        if (lines.length >= 6) {
+          isWinner = true;
+          winningCoords = lines.slice(0, 6).flatMap((l) => l.coords);
+        }
+        break;
+      }
+      case "3 Lines Any Direction": {
+        const lines = getCompletedLinesWithCoords(
+          cardGrid,
+          currentCalledNumbersSet,
+        );
+
+        if (lines.length >= 3) {
+          isWinner = true;
+          winningCoords = lines.slice(0, 3).flatMap((l) => l.coords);
+        }
+        break;
+      }
+      case "X + 1 Horizontal": {
+        const lines = getCompletedLinesWithCoords(
+          cardGrid,
+          currentCalledNumbersSet,
+        );
+
+        const diagonals = lines.filter((l) => l.type === "diag");
+        const horizontals = lines.filter((l) => l.type === "row");
+
+        if (diagonals.length === 2 && horizontals.length >= 1) {
+          isWinner = true;
+          winningCoords = [
+            ...diagonals.flatMap((l) => l.coords),
+            ...horizontals[0].coords,
+          ];
+        }
+        break;
+      }
+      case "2 Horizontal + 2 Vertical": {
+        const lines = getCompletedLinesWithCoords(
+          cardGrid,
+          currentCalledNumbersSet,
+        );
+
+        const horizontals = lines.filter((l) => l.type === "row");
+        const verticals = lines.filter((l) => l.type === "col");
+
+        if (horizontals.length >= 2 && verticals.length >= 2) {
+          isWinner = true;
+          winningCoords = [
+            ...horizontals.slice(0, 2).flatMap((l) => l.coords),
+            ...verticals.slice(0, 2).flatMap((l) => l.coords),
+          ];
+        }
+        break;
+      }
+      case "Large T + Diagonal": {
+        const lines = getCompletedLinesWithCoords(
+          cardGrid,
+          currentCalledNumbersSet,
+        );
+
+        const topRow = lines.find((l) => l.type === "row" && l.index === 0);
+        const middleCol = lines.find((l) => l.type === "col" && l.index === 2);
+        const diag = lines.find((l) => l.type === "diag");
+
+        if (topRow && middleCol && diag) {
+          isWinner = true;
+          winningCoords = [
+            ...topRow.coords,
+            ...middleCol.coords,
+            ...diag.coords,
+          ];
+        }
+        break;
+      }
+      case "3 Non Crossing Lines": {
+        const lines = getCompletedLinesWithCoords(
+          cardGrid,
+          currentCalledNumbersSet,
+        );
+        const combos = findNonCrossingSets(lines, 3);
+
+        if (combos.length > 0) {
+          isWinner = true;
+          winningCoords = combos[0].flatMap((l) => l.coords);
+        }
+        break;
+      }
+      case "4 Non Crossing Lines": {
+        const lines = getCompletedLinesWithCoords(
+          cardGrid,
+          currentCalledNumbersSet,
+        );
+        const combos = findNonCrossingSets(lines, 4);
+
+        if (combos.length > 0) {
+          isWinner = true;
+          winningCoords = combos[0].flatMap((l) => l.coords);
+        }
+        break;
+      }
       case "All": {
         const allCoords = [];
+
+        const lines = getCompletedLinesWithCoords(
+          cardGrid,
+          currentCalledNumbersSet,
+        );
+
+        const rows = lines.filter((l) => l.type === "row");
+        const cols = lines.filter((l) => l.type === "col");
+        const diags = lines.filter((l) => l.type === "diag");
+
+        // --- EXISTING PATTERNS ---
 
         const lineCoords = getWinningLineCoords(
           cardGrid,
@@ -530,16 +795,86 @@ export default function DashboardScreen({
           isWinner = true;
         }
 
-        // Uncomment this if you want to include it in "All"
-        // if (checkInnerCornersAndCenterWin(cardGrid, currentCalledNumbersSet)) {
-        //   allCoords.push(...getInnerCornersAndCenterCoords());
-        //   isWinner = true;
-        // }
+        // --- NEW PATTERN 1 ---
+        if (cols.length >= 2 && rows.length >= 1) {
+          allCoords.push(
+            ...cols.slice(0, 2).flatMap((l) => l.coords),
+            ...rows[0].coords,
+          );
+          isWinner = true;
+        }
 
-        winningCoords = allCoords;
+        // --- NEW PATTERNS 2-5 ---
+        if (lines.length >= 3) {
+          allCoords.push(...lines.slice(0, 3).flatMap((l) => l.coords));
+          isWinner = true;
+        }
+
+        if (lines.length >= 4) {
+          allCoords.push(...lines.slice(0, 4).flatMap((l) => l.coords));
+          isWinner = true;
+        }
+
+        if (lines.length >= 5) {
+          allCoords.push(...lines.slice(0, 5).flatMap((l) => l.coords));
+          isWinner = true;
+        }
+
+        if (lines.length >= 6) {
+          allCoords.push(...lines.slice(0, 6).flatMap((l) => l.coords));
+          isWinner = true;
+        }
+
+        // --- NEW PATTERN 6 (X + Horizontal) ---
+        if (diags.length === 2 && rows.length >= 1) {
+          allCoords.push(...diags.flatMap((l) => l.coords), ...rows[0].coords);
+          isWinner = true;
+        }
+
+        // --- NEW PATTERN 7 (2H + 2V) ---
+        if (rows.length >= 2 && cols.length >= 2) {
+          allCoords.push(
+            ...rows.slice(0, 2).flatMap((l) => l.coords),
+            ...cols.slice(0, 2).flatMap((l) => l.coords),
+          );
+          isWinner = true;
+        }
+
+        // --- NEW PATTERN 8 (Large T + Diagonal) ---
+        const topRow = rows.find((r) => r.index === 0);
+        const middleCol = cols.find((c) => c.index === 2);
+        const anyDiag = diags[0];
+
+        if (topRow && middleCol && anyDiag) {
+          allCoords.push(
+            ...topRow.coords,
+            ...middleCol.coords,
+            ...anyDiag.coords,
+          );
+          isWinner = true;
+        }
+
+        // --- NEW PATTERN 9 ---
+        const nonCross3 = findNonCrossingSets(lines, 3);
+        if (nonCross3.length > 0) {
+          allCoords.push(...nonCross3[0].flatMap((l) => l.coords));
+          isWinner = true;
+        }
+
+        // --- NEW PATTERN 10 ---
+        const nonCross4 = findNonCrossingSets(lines, 4);
+        if (nonCross4.length > 0) {
+          allCoords.push(...nonCross4[0].flatMap((l) => l.coords));
+          isWinner = true;
+        }
+
+        // --- DEDUPE COORDS (VERY IMPORTANT) ---
+        winningCoords = [
+          ...new Map(allCoords.map((c) => [c.join(","), c])).values(),
+        ];
+
         break;
       }
-
       default:
         console.warn(`Unknown winning pattern: ${winningPattern}`);
         break;

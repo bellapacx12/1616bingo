@@ -221,6 +221,17 @@ export default function CardManagementScreen({
             <option>All</option>
             <option>1 Line</option>
             <option>2 Lines</option>
+            <option>3 Lines Any Direction</option>
+            <option>4 Lines Any Direction</option>
+            <option>5 Lines Any Direction</option>
+            <option>6 Lines Any Direction</option>
+            <option>Two Vertical + One Horizontal</option>
+            <option>Two Horizontal + Two Vertical</option>
+            <option>X + One Horizontal</option>
+            <option>Large T + One Diagonal</option>
+            <option>Large Plus + One Diagonal</option>
+            <option>3 Non-Crossing Lines</option>
+            <option>4 Non-Crossing Lines</option>
             <option>Four Corners</option>
             <option>Cross</option>
             <option>Inner Corners + Center</option>
