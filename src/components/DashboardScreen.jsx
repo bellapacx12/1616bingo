@@ -1251,11 +1251,11 @@ const togglePlayPause = () => {
 
     setTimeout(() => {
       playBoostedAudio("/game/bingo2.m4a");
-    }, 10000);
+    }, 12000);
 
     setTimeout(() => {
       playBoostedAudio("/game/bingo3.m4a");
-    }, 18000);
+    }, 20000);
   }
 
   setIsRunning((prev) => !prev);
@@ -1332,7 +1332,7 @@ const togglePlayPause = () => {
               {[...calledNumbers.slice(0, 5)].map((n, i) => (
                 <div
                   key={i}
-                  className="text-center p-3 bg-slate-800 rounded-lg text-lg font-semibold border border-slate-700"
+                  className="text-center p-3 bg-emerald-400 text-slate-800 rounded-lg text-lg font-bold border border-slate-700"
                 >
                   {n ? n.toString().padStart(2, "0") : "--"}
                 </div>
