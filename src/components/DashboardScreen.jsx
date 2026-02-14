@@ -1090,36 +1090,50 @@ export default function DashboardScreen({
     };
   }, [isRunning, calledNumbers, interval, winningCards]);
 
-  const togglePlayPause = () => {
-    // Dummy speech activation (if needed)
-    if (!isRunning && currentCall === null && speechUtteranceRef.current) {
-      const dummyUtterance = new SpeechSynthesisUtterance(" ");
-      window.speechSynthesis.speak(dummyUtterance);
-    }
+  const playBoostedAudio = (src) => {
+  const audio = new Audio(src);
 
-    // Play sound with Web Audio API for volume boost
-    const audio = new Audio(
-      !isRunning ? "/game/start_game.m4a" : "/game/pause_game.m4a",
-    );
+  const audioContext = new (
+    window.AudioContext || window.webkitAudioContext
+  )();
 
-    // Create AudioContext and GainNode
-    const audioContext = new (
-      window.AudioContext || window.webkitAudioContext
-    )();
-    const gainNode = audioContext.createGain();
-    gainNode.gain.value = 3.0; // 200% louder (1.0 = normal, 3.0 = 300% volume)
+  const gainNode = audioContext.createGain();
+  gainNode.gain.value = 3.0; // boost volume
 
-    // Connect audio to gain node and output
-    const source = audioContext.createMediaElementSource(audio);
-    source.connect(gainNode);
-    gainNode.connect(audioContext.destination);
+  const source = audioContext.createMediaElementSource(audio);
+  source.connect(gainNode);
+  gainNode.connect(audioContext.destination);
 
-    audio.play().catch((err) => {
-      console.warn("Audio play blocked by browser:", err);
-    });
+  audio.play().catch((err) => {
+    console.warn("Audio play blocked:", err);
+  });
+};
 
-    setIsRunning((prev) => !prev);
-  };
+const togglePlayPause = () => {
+  if (!isRunning) {
+    // START GAME
+    playBoostedAudio("/game/start_game.m4a");
+  } else {
+    // PAUSE GAME
+    playBoostedAudio("/game/pause_game.m4a");
+
+    // Delayed bingo voices (4 sec interval)
+    setTimeout(() => {
+      playBoostedAudio("/game/bingo1.m4a");
+    }, 2000);
+
+    setTimeout(() => {
+      playBoostedAudio("/game/bingo2.m4a");
+    }, 8000);
+
+    setTimeout(() => {
+      playBoostedAudio("/game/bingo3.m4a");
+    }, 12000);
+  }
+
+  setIsRunning((prev) => !prev);
+};
+
 
   const restartGame = () => {
     setIsRunning(false);
