@@ -1251,11 +1251,11 @@ const togglePlayPause = () => {
 
     setTimeout(() => {
       playBoostedAudio("/game/bingo2.m4a");
-    }, 8000);
+    }, 10000);
 
     setTimeout(() => {
       playBoostedAudio("/game/bingo3.m4a");
-    }, 12000);
+    }, 18000);
   }
 
   setIsRunning((prev) => !prev);
