@@ -609,24 +609,43 @@ export default function DashboardScreen({
         }
         break;
       }
-      case "2 Vertical + 1 Horizontal": {
-        const lines = getCompletedLinesWithCoords(
-          cardGrid,
-          currentCalledNumbersSet,
-        );
+     case "Two Vertical + One Horizontal": {
+  // Helper to check if a line is complete, counting the FREE center as called
+  const isLineComplete = (coords) => {
+    return coords.every(([r, c]) => {
+      const val = cardGrid[r][c];
+      return val === null || currentCalledNumbersSet.has(val);
+    });
+  };
 
-        const verticals = lines.filter((l) => l.type === "col");
-        const horizontals = lines.filter((l) => l.type === "row");
+  // Get all verticals
+  const verticals = [];
+  for (let c = 0; c < 5; c++) {
+    const coords = [];
+    for (let r = 0; r < 5; r++) coords.push([r, c]);
+    if (isLineComplete(coords)) verticals.push({ type: "col", coords });
+  }
 
-        if (verticals.length >= 2 && horizontals.length >= 1) {
-          isWinner = true;
-          winningCoords = [
-            ...verticals.slice(0, 2).flatMap((l) => l.coords),
-            ...horizontals[0].coords,
-          ];
-        }
-        break;
-      }
+  // Get all horizontals
+  const horizontals = [];
+  for (let r = 0; r < 5; r++) {
+    const coords = [];
+    for (let c = 0; c < 5; c++) coords.push([r, c]);
+    if (isLineComplete(coords)) horizontals.push({ type: "row", coords });
+  }
+
+  // Check winning condition: at least 2 verticals + 1 horizontal
+  if (verticals.length >= 2 && horizontals.length >= 1) {
+    isWinner = true;
+    winningCoords = [
+      ...verticals.slice(0, 2).flatMap((l) => l.coords),
+      ...horizontals[0].coords,
+    ];
+  }
+
+  break;
+}
+
       case "4 Lines Any Direction": {
         const lines = getCompletedLinesWithCoords(
           cardGrid,
@@ -675,7 +694,7 @@ export default function DashboardScreen({
         }
         break;
       }
-      case "X + 1 Horizontal": {
+      case "X + One Horizontal": {
         const lines = getCompletedLinesWithCoords(
           cardGrid,
           currentCalledNumbersSet,
@@ -693,7 +712,7 @@ export default function DashboardScreen({
         }
         break;
       }
-      case "2 Horizontal + 2 Vertical": {
+      case "Two Horizontal + Two Vertical": {
         const lines = getCompletedLinesWithCoords(
           cardGrid,
           currentCalledNumbersSet,
@@ -711,7 +730,7 @@ export default function DashboardScreen({
         }
         break;
       }
-      case "Large T + Diagonal": {
+      case "Large T + One Diagonal": {
         const lines = getCompletedLinesWithCoords(
           cardGrid,
           currentCalledNumbersSet,
@@ -731,7 +750,7 @@ export default function DashboardScreen({
         }
         break;
       }
-      case "3 Non Crossing Lines": {
+      case "3 Non-Crossing Lines": {
         const lines = getCompletedLinesWithCoords(
           cardGrid,
           currentCalledNumbersSet,
@@ -744,7 +763,7 @@ export default function DashboardScreen({
         }
         break;
       }
-      case "4 Non Crossing Lines": {
+      case "4 Non-Crossing Lines": {
         const lines = getCompletedLinesWithCoords(
           cardGrid,
           currentCalledNumbersSet,
@@ -757,6 +776,35 @@ export default function DashboardScreen({
         }
         break;
       }
+      case "Large Cross + One Diagonal": {
+  // Include the FREE center automatically
+  const currentCalledNumbersWithFree = new Set([
+    ...currentCalledNumbersSet,
+    cardGrid[2][2], // center FREE space
+  ]);
+
+  const lines = getCompletedLinesWithCoords(cardGrid, currentCalledNumbersWithFree);
+
+  const verticals = lines.filter((l) => l.type === "col");
+  const horizontals = lines.filter((l) => l.type === "row");
+  const diagonals = lines.filter((l) => l.type === "diag");
+
+  // Middle row + middle column
+  const middleRow = horizontals.find((r) => r.index === 2);
+  const middleCol = verticals.find((c) => c.index === 2);
+  const anyDiag = diagonals[0]; // pick any diagonal
+
+  if (middleRow && middleCol && anyDiag) {
+    isWinner = true;
+    winningCoords = [
+      ...middleRow.coords,
+      ...middleCol.coords,
+      ...anyDiag.coords,
+    ];
+  }
+  break;
+}
+
       case "All": {
         const allCoords = [];
 
@@ -875,6 +923,7 @@ export default function DashboardScreen({
 
         break;
       }
+
       default:
         console.warn(`Unknown winning pattern: ${winningPattern}`);
         break;
@@ -1113,6 +1162,84 @@ const togglePlayPause = () => {
   if (!isRunning) {
     // START GAME
     playBoostedAudio("/game/start_game.m4a");
+    setTimeout(() => {
+   switch (winningPattern) {
+  case "All":
+    //playBoostedAudio("/voices/all.m4a");
+    break;
+
+  case "1 Line":
+    playBoostedAudio("/voices/1_line.m4a");
+    break;
+
+  case "2 Lines":
+    playBoostedAudio("/voices/2_lines.m4a");
+    break;
+
+  case "3 Lines Any Direction":
+    playBoostedAudio("/voices/3_lines_any_direction.m4a");
+    break;
+
+  case "4 Lines Any Direction":
+    playBoostedAudio("/voices/4_lines_any_direction.m4a");
+    break;
+
+  case "5 Lines Any Direction":
+    playBoostedAudio("/voices/5_lines_any_direction.m4a");
+    break;
+
+  case "6 Lines Any Direction":
+    playBoostedAudio("/voices/6_lines_any_direction.m4a");
+    break;
+
+  case "Two Vertical + One Horizontal":
+    playBoostedAudio("/voices/two_vertical_one_horizontal.m4a");
+    break;
+
+  case "Two Horizontal + Two Vertical":
+    playBoostedAudio("/voices/two_horizontal_two_vertical.m4a");
+    break;
+
+  case "X + One Horizontal":
+    playBoostedAudio("/voices/x_one_horizontal.m4a");
+    break;
+
+  case "Large T + One Diagonal":
+    playBoostedAudio("/voices/large_t_one_diagonal.m4a");
+    break;
+
+  case "Large Cross + One Diagonal":
+    playBoostedAudio("/voices/large_plus_one_diagonal.m4a");
+    break;
+
+  case "3 Non-Crossing Lines":
+    playBoostedAudio("/voices/3_non_crossing_lines.m4a");
+    break;
+
+  case "4 Non-Crossing Lines":
+    playBoostedAudio("/voices/4_non_crossing_lines.mp3");
+    break;
+
+  case "Four Corners":
+    playBoostedAudio("/voices/four_corners.mp3");
+    break;
+
+  case "Cross":
+    playBoostedAudio("/voices/cross.mp3");
+    break;
+
+  case "Inner Corners + Center":
+    playBoostedAudio("/voices/inner_corners_center.mp3");
+    break;
+
+  case "Full House":
+    playBoostedAudio("/voices/full_house.m4a");
+    break;
+
+  default:
+    console.log("No matching winning pattern voice.");
+}
+}, 3000);
   } else {
     // PAUSE GAME
     playBoostedAudio("/game/pause_game.m4a");

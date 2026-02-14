@@ -229,7 +229,7 @@ export default function CardManagementScreen({
             <option>Two Horizontal + Two Vertical</option>
             <option>X + One Horizontal</option>
             <option>Large T + One Diagonal</option>
-            <option>Large Plus + One Diagonal</option>
+            <option>Large Cross + One Diagonal</option>
             <option>3 Non-Crossing Lines</option>
             <option>4 Non-Crossing Lines</option>
             <option>Four Corners</option>
