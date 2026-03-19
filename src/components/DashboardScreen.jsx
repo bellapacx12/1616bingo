@@ -285,9 +285,7 @@ const [winnerss, setWinners] = useState([]);
   };
 
   // Check for Full House win
-  const checkFullHouseWin = (grid, calledNumbersSet) => {
-    return grid.flat().every((num) => isMarked(num, calledNumbersSet));
-  };
+  
   // Check for Four Corners win
   const checkFourCornersWin = (grid, calledNumbersSet) => {
     const corners = [
@@ -522,7 +520,30 @@ const [winnerss, setWinners] = useState([]);
   const dedupeCoords = (coords) => {
     return [...new Map(coords.map((c) => [c.join(","), c])).values()];
   };
+const checkFullHouseWin = (cardGrid, calledNumbers) => {
+  // Normalize called numbers into a Set<number>
+  const calledSet = new Set([...calledNumbers].map(Number));
 
+  for (let r = 0; r < 5; r++) {
+    for (let c = 0; c < 5; c++) {
+      const cell = cardGrid[r][c];
+
+      // ✅ FREE center (or any null) counts as filled
+      if (cell === null) continue;
+
+      // ✅ Convert to number to avoid "12" vs 12 issues
+      const num = Number(cell);
+
+      // ❌ If any number is not called → not full house
+      if (!calledSet.has(num)) {
+        return false;
+      }
+    }
+  }
+
+  // ✅ All cells satisfied
+  return true;
+};
   const gameOverRef = useRef(false);
   // Main win checking function
 const getWinningLines = (grid, calledNumbersSet) => {
@@ -1582,7 +1603,7 @@ const togglePlayPause = () => {
     break;
 
   case "Full House":
-    playBoostedAudio("/voices/full_house.m4a");
+    playBoostedAudio("/voices/full_house.mp3");
     break;
 
   default:
