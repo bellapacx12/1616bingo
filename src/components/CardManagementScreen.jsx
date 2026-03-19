@@ -227,6 +227,13 @@ export default function CardManagementScreen({
             <option>6 Lines Any Direction</option>
             <option>Two Vertical + One Horizontal</option>
             <option>Two Horizontal + Two Vertical</option>
+            <option>2V + 1H + 1D</option>
+            <option>1V + 1H + 1D</option>
+            <option>2H + 1D</option>
+            <option>3H + 1V</option>
+            <option>2V + 2H + 1D</option>
+            <option>H or I</option>
+            <option>2V no free + 1H</option>
             <option>X + One Horizontal</option>
             <option>Large T + One Diagonal</option>
             <option>Large Cross + One Diagonal</option>
@@ -236,6 +243,7 @@ export default function CardManagementScreen({
             <option>Cross</option>
             <option>Inner Corners + Center</option>
             <option>Full House</option>
+            
           </select>
         </div>
 

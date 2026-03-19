@@ -611,7 +611,30 @@ const getWinningLines = (grid, calledNumbersSet) => {
     const cardGrid = getCardGrid(card);
     let isWinner = false;
     let winningCoords = [];
+    const calledSet = new Set([...currentCalledNumbersSet].map(Number));
 
+// ✅ Always include FREE center
+if (cardGrid[2][2] !== undefined) {
+  calledSet.add(Number(cardGrid[2][2]));
+}
+
+// Helper to merge coords without duplicates
+const mergeCoords = (lines) => {
+  const seen = new Set();
+  const result = [];
+
+  lines.forEach((l) => {
+    l.coords.forEach(([r, c]) => {
+      const key = `${r}-${c}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        result.push([r, c]);
+      }
+    });
+  });
+
+  return result;
+};
     switch (winningPattern) {
       case "1 Line": {
         const coords = getWinningLineCoords(cardGrid, currentCalledNumbersSet);
@@ -852,7 +875,158 @@ const getWinningLines = (grid, calledNumbersSet) => {
   }
   break;
 }
+case "2V + 1H + 1D": {
+  const lines = getCompletedLinesWithCoords(cardGrid, calledSet);
 
+  const v = lines.filter((l) => l.type === "col");
+  const h = lines.filter((l) => l.type === "row");
+  const d = lines.filter((l) => l.type === "diag");
+
+  if (v.length >= 2 && h.length >= 1 && d.length >= 1) {
+    isWinner = true;
+    winningCoords = mergeCoords([
+      ...v.slice(0, 2),
+      h[0],
+      d[0],
+    ]);
+  }
+  break;
+}
+case "1V + 1H + 1D": {
+  const lines = getCompletedLinesWithCoords(cardGrid, calledSet);
+
+  const v = lines.find((l) => l.type === "col");
+  const h = lines.find((l) => l.type === "row");
+  const d = lines.find((l) => l.type === "diag");
+
+  if (v && h && d) {
+    isWinner = true;
+    winningCoords = mergeCoords([v, h, d]);
+  }
+  break;
+}
+case "2H + 1D": {
+  const lines = getCompletedLinesWithCoords(cardGrid, calledSet);
+
+  const h = lines.filter((l) => l.type === "row");
+  const d = lines.filter((l) => l.type === "diag");
+
+  if (h.length >= 2 && d.length >= 1) {
+    isWinner = true;
+    winningCoords = mergeCoords([
+      ...h.slice(0, 2),
+      d[0],
+    ]);
+  }
+  break;
+}
+case "3H + 1V": {
+  const lines = getCompletedLinesWithCoords(cardGrid, calledSet);
+
+  const h = lines.filter((l) => l.type === "row");
+  const v = lines.filter((l) => l.type === "col");
+
+  if (h.length >= 3 && v.length >= 1) {
+    isWinner = true;
+    winningCoords = mergeCoords([
+      ...h.slice(0, 3),
+      v[0],
+    ]);
+  }
+  break;
+}
+case "2V + 2H + 1D": {
+  const lines = getCompletedLinesWithCoords(cardGrid, calledSet);
+
+  const v = lines.filter((l) => l.type === "col");
+  const h = lines.filter((l) => l.type === "row");
+  const d = lines.filter((l) => l.type === "diag");
+
+  if (v.length >= 2 && h.length >= 2 && d.length >= 1) {
+    isWinner = true;
+    winningCoords = mergeCoords([
+      ...v.slice(0, 2),
+      ...h.slice(0, 2),
+      d[0],
+    ]);
+  }
+  break;
+}
+case "H or I": {
+  const isMarked = (r, c) => {
+    const val = cardGrid[r][c];
+    return val === null || calledSet.has(Number(val));
+  };
+
+  // H pattern
+  const H = [
+    [0,0],[1,0],[2,0],[3,0],[4,0], // left vertical
+    [0,4],[1,4],[2,4],[3,4],[4,4], // right vertical
+    [2,1],[2,2],[2,3],             // middle bar
+  ];
+
+  // I pattern
+  const I = [
+    [0,0],[0,1],[0,2],[0,3],[0,4], // top
+    [4,0],[4,1],[4,2],[4,3],[4,4], // bottom
+    [1,2],[2,2],[3,2],             // middle vertical
+  ];
+
+  const checkPattern = (pattern) =>
+    pattern.every(([r, c]) => isMarked(r, c));
+
+  if (checkPattern(H) || checkPattern(I)) {
+    isWinner = true;
+    winningCoords = checkPattern(H) ? H : I;
+  }
+
+  break;
+}
+case "2V no free + 1H": {
+  const isLineCompleteNoFree = (coords) => {
+    return coords.every(([r, c]) => {
+      const val = cardGrid[r][c];
+
+      // ❌ FREE is NOT allowed here
+      if (val === null) return false;
+
+      return calledSet.has(Number(val));
+    });
+  };
+
+  const isLineCompleteNormal = (coords) => {
+    return coords.every(([r, c]) => {
+      const val = cardGrid[r][c];
+      return val === null || calledSet.has(Number(val));
+    });
+  };
+
+  const verticals = [];
+  for (let c = 0; c < 5; c++) {
+    const coords = [];
+    for (let r = 0; r < 5; r++) coords.push([r, c]);
+
+    if (isLineCompleteNoFree(coords)) verticals.push({ coords });
+  }
+
+  const horizontals = [];
+  for (let r = 0; r < 5; r++) {
+    const coords = [];
+    for (let c = 0; c < 5; c++) coords.push([r, c]);
+
+    if (isLineCompleteNormal(coords)) horizontals.push({ coords });
+  }
+
+  if (verticals.length >= 2 && horizontals.length >= 1) {
+    isWinner = true;
+    winningCoords = mergeCoords([
+      ...verticals.slice(0, 2),
+      horizontals[0],
+    ]);
+  }
+
+  break;
+}
       case "All": {
         const allCoords = [];
 
@@ -1088,7 +1262,7 @@ const getWinningLines = (grid, calledNumbersSet) => {
     const updatedCalledNumbers = [next, ...calledNumbers];
     setCalledNumbers(updatedCalledNumbers);
     setCurrentCall(next);
-
+ 
     // 🛑 Only check for winners if mode is not manual
     if (mode == "manual") {
       const currentCalledNumbersSet = new Set(updatedCalledNumbers);
@@ -1103,6 +1277,30 @@ const getWinningLines = (grid, calledNumbersSet) => {
         let isWinner = false;
         console.log("checking");
         let winningCoords = [];
+            const calledSet = new Set([...currentCalledNumbersSet].map(Number));
+
+// ✅ Always include FREE center
+if (cardGrid[2][2] !== undefined) {
+  calledSet.add(Number(cardGrid[2][2]));
+}
+
+// Helper to merge coords without duplicates
+const mergeCoords = (lines) => {
+  const seen = new Set();
+  const result = [];
+
+  lines.forEach((l) => {
+    l.coords.forEach(([r, c]) => {
+      const key = `${r}-${c}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        result.push([r, c]);
+      }
+    });
+  });
+
+  return result;
+};
        switch (winningPattern) {
       case "1 Line": {
         const coords = getWinningLineCoords(cardGrid, currentCalledNumbersSet);
@@ -1112,6 +1310,158 @@ const getWinningLines = (grid, calledNumbersSet) => {
         }
         break;
       }
+      case "2V + 1H + 1D": {
+  const lines = getCompletedLinesWithCoords(cardGrid, calledSet);
+
+  const v = lines.filter((l) => l.type === "col");
+  const h = lines.filter((l) => l.type === "row");
+  const d = lines.filter((l) => l.type === "diag");
+
+  if (v.length >= 2 && h.length >= 1 && d.length >= 1) {
+    isWinner = true;
+    winningCoords = mergeCoords([
+      ...v.slice(0, 2),
+      h[0],
+      d[0],
+    ]);
+  }
+  break;
+}
+case "1V + 1H + 1D": {
+  const lines = getCompletedLinesWithCoords(cardGrid, calledSet);
+
+  const v = lines.find((l) => l.type === "col");
+  const h = lines.find((l) => l.type === "row");
+  const d = lines.find((l) => l.type === "diag");
+
+  if (v && h && d) {
+    isWinner = true;
+    winningCoords = mergeCoords([v, h, d]);
+  }
+  break;
+}
+case "2H + 1D": {
+  const lines = getCompletedLinesWithCoords(cardGrid, calledSet);
+
+  const h = lines.filter((l) => l.type === "row");
+  const d = lines.filter((l) => l.type === "diag");
+
+  if (h.length >= 2 && d.length >= 1) {
+    isWinner = true;
+    winningCoords = mergeCoords([
+      ...h.slice(0, 2),
+      d[0],
+    ]);
+  }
+  break;
+}
+case "3H + 1V": {
+  const lines = getCompletedLinesWithCoords(cardGrid, calledSet);
+
+  const h = lines.filter((l) => l.type === "row");
+  const v = lines.filter((l) => l.type === "col");
+
+  if (h.length >= 3 && v.length >= 1) {
+    isWinner = true;
+    winningCoords = mergeCoords([
+      ...h.slice(0, 3),
+      v[0],
+    ]);
+  }
+  break;
+}
+case "2V + 2H + 1D": {
+  const lines = getCompletedLinesWithCoords(cardGrid, calledSet);
+
+  const v = lines.filter((l) => l.type === "col");
+  const h = lines.filter((l) => l.type === "row");
+  const d = lines.filter((l) => l.type === "diag");
+
+  if (v.length >= 2 && h.length >= 2 && d.length >= 1) {
+    isWinner = true;
+    winningCoords = mergeCoords([
+      ...v.slice(0, 2),
+      ...h.slice(0, 2),
+      d[0],
+    ]);
+  }
+  break;
+}
+case "H or I": {
+  const isMarked = (r, c) => {
+    const val = cardGrid[r][c];
+    return val === null || calledSet.has(Number(val));
+  };
+
+  // H pattern
+  const H = [
+    [0,0],[1,0],[2,0],[3,0],[4,0], // left vertical
+    [0,4],[1,4],[2,4],[3,4],[4,4], // right vertical
+    [2,1],[2,2],[2,3],             // middle bar
+  ];
+
+  // I pattern
+  const I = [
+    [0,0],[0,1],[0,2],[0,3],[0,4], // top
+    [4,0],[4,1],[4,2],[4,3],[4,4], // bottom
+    [1,2],[2,2],[3,2],             // middle vertical
+  ];
+
+  const checkPattern = (pattern) =>
+    pattern.every(([r, c]) => isMarked(r, c));
+
+  if (checkPattern(H) || checkPattern(I)) {
+    isWinner = true;
+    winningCoords = checkPattern(H) ? H : I;
+  }
+
+  break;
+}
+case "2V no free + 1H": {
+  const isLineCompleteNoFree = (coords) => {
+    return coords.every(([r, c]) => {
+      const val = cardGrid[r][c];
+
+      // ❌ FREE is NOT allowed here
+      if (val === null) return false;
+
+      return calledSet.has(Number(val));
+    });
+  };
+
+  const isLineCompleteNormal = (coords) => {
+    return coords.every(([r, c]) => {
+      const val = cardGrid[r][c];
+      return val === null || calledSet.has(Number(val));
+    });
+  };
+
+  const verticals = [];
+  for (let c = 0; c < 5; c++) {
+    const coords = [];
+    for (let r = 0; r < 5; r++) coords.push([r, c]);
+
+    if (isLineCompleteNoFree(coords)) verticals.push({ coords });
+  }
+
+  const horizontals = [];
+  for (let r = 0; r < 5; r++) {
+    const coords = [];
+    for (let c = 0; c < 5; c++) coords.push([r, c]);
+
+    if (isLineCompleteNormal(coords)) horizontals.push({ coords });
+  }
+
+  if (verticals.length >= 2 && horizontals.length >= 1) {
+    isWinner = true;
+    winningCoords = mergeCoords([
+      ...verticals.slice(0, 2),
+      horizontals[0],
+    ]);
+  }
+
+  break;
+}
       case "2 Lines": {
         const coords = getWinningLineCoords(cardGrid, currentCalledNumbersSet);
         if (coords.length >= 10) {
@@ -1598,10 +1948,27 @@ const togglePlayPause = () => {
     playBoostedAudio("/voices/cross.mp3");
     break;
 
-  case "Inner Corners + Center":
-    playBoostedAudio("/voices/inner_corners_center.mp3");
+  case "2V + 1H + 1D":
+    playBoostedAudio("/voices/2V + 1H + 1D.mp3");
     break;
-
+   case "1V + 1H + 1D":
+    playBoostedAudio("/voices/1V + 1H + 1D.mp3");
+    break;
+   case "2H + 1D":
+    playBoostedAudio("/voices/2H + 1D.mp3");
+    break;
+     case "3H + 1V":
+    playBoostedAudio("/voices/3H + 1V.mp3");
+    break;
+     case "2V + 2H + 1D":
+    playBoostedAudio("/voices/2V + 2H + 1D.mp3");
+    break;
+     case "H or I":
+    playBoostedAudio("/voices/H or I.mp3");
+    break;
+    case "2V no free + 1H":
+    playBoostedAudio("/voices/2V no free + 1H.mp3");
+    break;
   case "Full House":
     playBoostedAudio("/voices/full_house.mp3");
     break;
