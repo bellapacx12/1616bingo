@@ -2011,22 +2011,22 @@ export default function DashboardScreen({
             playBoostedAudio("/voices/2V1H1D.mp3");
             break;
           case "1V + 1H + 1D":
-            playBoostedAudio("/voices/1V + 1H + 1D.mp3");
+            playBoostedAudio("/voices/1V1H1D.mp3");
             break;
           case "2H + 1D":
-            playBoostedAudio("/voices/2H + 1D.mp3");
+            playBoostedAudio("/voices/2H1D.mp3");
             break;
           case "3H + 1V":
-            playBoostedAudio("/voices/3H + 1V.mp3");
+            playBoostedAudio("/voices/3H1V.mp3");
             break;
           case "2V + 2H + 1D":
-            playBoostedAudio("/voices/2V + 2H + 1D.mp3");
+            playBoostedAudio("/voices/2V2H1D.mp3");
             break;
           case "H or I":
-            playBoostedAudio("/voices/H or I.mp3");
+            playBoostedAudio("/voices/HorI.mp3");
             break;
           case "2V no free + 1H":
-            playBoostedAudio("/voices/2V no free + 1H.mp3");
+            playBoostedAudio("/voices/2Vnofree+1H.mp3");
             break;
           case "Full House":
             playBoostedAudio("/voices/full_house.mp3");
