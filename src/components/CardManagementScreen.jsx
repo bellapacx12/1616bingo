@@ -157,9 +157,30 @@ export default function CardManagementScreen({
       } else {
         setSelectedCardState([]); // fallback if no round
       }
+      clearCards();
     } catch (err) {
       console.error("Error refreshing round data:", err);
       setSelectedCardState([]);
+    }
+  };
+  const clearCards = async () => {
+    try {
+      const shopId = localStorage.getItem("shopid");
+
+      const res = await fetch("https://one616api.onrender.com/clear-cards", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          shop_id: shopId,
+        }),
+      });
+
+      if (!res.ok) throw new Error();
+    } catch (err) {
+      console.error(err);
+      alert("Failed to clear cards");
     }
   };
 
