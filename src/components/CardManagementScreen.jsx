@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import ModalReport from "./ModalReport";
 import CardModal from "./showCard";
 
-const TOTAL_CARDS = 1000;
+const TOTAL_CARDS = 1500;
 const DEFAULT_COLOR = "#3B82F6"; // blue shade
 
 export default function CardManagementScreen({
@@ -141,6 +141,30 @@ export default function CardManagementScreen({
 
   const shopId = localStorage.getItem("shopid");
 
+  const handleRefresh = async () => {
+    try {
+      const shopId = localStorage.getItem("shopid");
+      if (!shopId) return;
+
+      const res = await fetch(
+        `https://one1616api.onrender.com/round/${shopId}`,
+      );
+      if (!res.ok) throw new Error("Failed to fetch round data");
+
+      const data = await res.json();
+
+      // If a round is active, mark its selected cards
+      if (data && data.selectedCards) {
+        setSelectedCardState(data.selectedCards);
+      } else {
+        setSelectedCardState([]); // fallback if no round
+      }
+    } catch (err) {
+      console.error("Error refreshing round data:", err);
+      setSelectedCardState([]);
+    }
+  };
+
   return (
     <div className="w-screen h-screen bg-slate-950 text-slate-200 flex overflow-hidden">
       {/* Sidebar Settings Panel */}
@@ -243,7 +267,6 @@ export default function CardManagementScreen({
             <option>Cross</option>
             <option>Inner Corners + Center</option>
             <option>Full House</option>
-            
           </select>
         </div>
 
@@ -275,6 +298,12 @@ export default function CardManagementScreen({
               onClick={() => setShowReportModal(true)}
             >
               Reports
+            </button>
+            <button
+              className="px-5 py-2.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700"
+              onClick={() => handleRefresh()}
+            >
+              Refresh
             </button>
 
             <button
