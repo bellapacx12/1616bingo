@@ -146,9 +146,7 @@ export default function CardManagementScreen({
       const shopId = localStorage.getItem("shopid");
       if (!shopId) return;
 
-      const res = await fetch(
-        `https://one1616api.onrender.com/round/${shopId}`,
-      );
+      const res = await fetch(`https://one616api.onrender.com/round/${shopId}`);
       if (!res.ok) throw new Error("Failed to fetch round data");
 
       const data = await res.json();
