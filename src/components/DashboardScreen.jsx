@@ -2100,10 +2100,7 @@ export default function DashboardScreen({
             <span className="text-cyan-400">{calledNumbers.length}/75</span>
           </div>
 
-          <div className="font-semibold flex items-center">
-            <span className="mr-2 text-slate-400">Prize:</span>
-            <span className="text-emerald-400">{prize.toFixed(2)} ETB</span>
-          </div>
+          <div className="font-semibold flex items-center"></div>
 
           {winningCards.length > 0 && (
             <div className="font-semibold flex items-center">
