@@ -2319,7 +2319,7 @@ export default function DashboardScreen({
             playBoostedAudio("/voices/full_house.mp3");
             break;
           case "3V + 2H + 1D":
-            playBoostedAudio("/voices/3v2h1d.mp3");
+            playBoostedAudio("/voices/3V2h1D.mp3");
             break;
           case "Half Full House":
             playBoostedAudio("/voices/halffullhouse.mp3");
