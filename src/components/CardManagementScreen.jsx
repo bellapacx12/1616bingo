@@ -286,6 +286,11 @@ export default function CardManagementScreen({
             <option>Cross</option>
             <option>Inner Corners + Center</option>
             <option>Full House</option>
+            <option>3V + 2H + 1D</option>
+            <option>Half Full House</option>
+            <option>5 Lines Without Free</option>
+            <option>4 Lines Without Free</option>
+            <option>3 Squares</option>
           </select>
         </div>
 

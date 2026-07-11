@@ -544,6 +544,126 @@ export default function DashboardScreen({
     // ✅ All cells satisfied
     return true;
   };
+  const isLineCompleteWithoutFree = (coords, grid, calledSet) => {
+    return coords.every(([r, c]) => {
+      const val = grid[r][c];
+
+      // FREE space does NOT count
+      if (val === null) return false;
+
+      return calledSet.has(Number(val));
+    });
+  };
+  const checkHalfFullHouseWin = (grid, calledSet) => {
+    const isMarkedCell = ([r, c]) => {
+      const val = grid[r][c];
+      return val === null || calledSet.has(Number(val));
+    };
+
+    const patterns = [
+      // Top
+      [
+        [0, 0],
+        [0, 1],
+        [0, 2],
+        [0, 3],
+        [0, 4],
+        [1, 0],
+        [1, 1],
+        [1, 2],
+        [1, 3],
+        [1, 4],
+        [2, 0],
+        [2, 1],
+        [2, 2],
+        [2, 3],
+        [2, 4],
+      ],
+
+      // Bottom
+      [
+        [2, 0],
+        [2, 1],
+        [2, 2],
+        [2, 3],
+        [2, 4],
+        [3, 0],
+        [3, 1],
+        [3, 2],
+        [3, 3],
+        [3, 4],
+        [4, 0],
+        [4, 1],
+        [4, 2],
+        [4, 3],
+        [4, 4],
+      ],
+
+      // Left
+      [
+        [0, 0],
+        [0, 1],
+        [0, 2],
+        [1, 0],
+        [1, 1],
+        [1, 2],
+        [2, 0],
+        [2, 1],
+        [2, 2],
+        [3, 0],
+        [3, 1],
+        [3, 2],
+        [4, 0],
+        [4, 1],
+        [4, 2],
+      ],
+
+      // Right
+      [
+        [0, 2],
+        [0, 3],
+        [0, 4],
+        [1, 2],
+        [1, 3],
+        [1, 4],
+        [2, 2],
+        [2, 3],
+        [2, 4],
+        [3, 2],
+        [3, 3],
+        [3, 4],
+        [4, 2],
+        [4, 3],
+        [4, 4],
+      ],
+    ];
+
+    for (const pattern of patterns) {
+      if (pattern.every(isMarkedCell)) {
+        return pattern;
+      }
+    }
+
+    return null;
+  };
+  const squares = [];
+
+  for (let r = 0; r < 4; r++) {
+    for (let c = 0; c < 4; c++) {
+      squares.push({
+        coords: [
+          [r, c],
+          [r, c + 1],
+          [r + 1, c],
+          [r + 1, c + 1],
+        ],
+      });
+    }
+  }
+
+  const overlap = (a, b) =>
+    a.coords.some((x) => b.coords.some((y) => x[0] === y[0] && x[1] === y[1]));
+
   const gameOverRef = useRef(false);
   // Main win checking function
   const getWinningLines = (grid, calledNumbersSet) => {
@@ -632,7 +752,36 @@ export default function DashboardScreen({
     let isWinner = false;
     let winningCoords = [];
     const calledSet = new Set([...currentCalledNumbersSet].map(Number));
+    const completedSquares = squares.filter((square) =>
+      square.coords.every(([r, c]) => {
+        const val = cardGrid[r][c];
+        return val === null || calledSet.has(Number(val));
+      }),
+    );
+    const findSquareSet = (required) => {
+      const result = [];
 
+      const dfs = (start, chosen) => {
+        if (chosen.length === required) {
+          result.push([...chosen]);
+          return;
+        }
+
+        for (let i = start; i < completedSquares.length; i++) {
+          if (chosen.some((s) => overlap(s, completedSquares[i]))) continue;
+
+          chosen.push(completedSquares[i]);
+
+          dfs(i + 1, chosen);
+
+          chosen.pop();
+        }
+      };
+
+      dfs(0, []);
+
+      return result;
+    };
     // ✅ Always include FREE center
     if (cardGrid[2][2] !== undefined) {
       calledSet.add(Number(cardGrid[2][2]));
@@ -677,6 +826,27 @@ export default function DashboardScreen({
           isWinner = true;
           winningCoords = getFullHouseCoords();
         }
+        break;
+      }
+      case "Half Full House": {
+        const coords = checkHalfFullHouseWin(cardGrid, calledSet);
+
+        if (coords) {
+          isWinner = true;
+          winningCoords = coords;
+        }
+
+        break;
+      }
+      case "3 Squares": {
+        const combos = findSquareSet(3);
+
+        if (combos.length) {
+          isWinner = true;
+
+          winningCoords = mergeCoords(combos[0]);
+        }
+
         break;
       }
       case "Four Corners": {
@@ -736,7 +906,29 @@ export default function DashboardScreen({
 
         break;
       }
+      case "3V + 2H + 1D": {
+        const lines = getCompletedLinesWithCoords(cardGrid, calledSet);
 
+        const verticals = lines.filter((l) => l.type === "col");
+        const horizontals = lines.filter((l) => l.type === "row");
+        const diagonals = lines.filter((l) => l.type === "diag");
+
+        if (
+          verticals.length >= 3 &&
+          horizontals.length >= 2 &&
+          diagonals.length >= 1
+        ) {
+          isWinner = true;
+
+          winningCoords = mergeCoords([
+            ...verticals.slice(0, 3),
+            ...horizontals.slice(0, 2),
+            diagonals[0],
+          ]);
+        }
+
+        break;
+      }
       case "4 Lines Any Direction": {
         const lines = getCompletedLinesWithCoords(
           cardGrid,
@@ -1056,6 +1248,101 @@ export default function DashboardScreen({
             ...verticals.slice(0, 2),
             horizontals[0],
           ]);
+        }
+
+        break;
+      }
+      case "4 Lines Without Free": {
+        const lines = [];
+
+        // Rows
+        for (let r = 0; r < 5; r++) {
+          const coords = Array.from({ length: 5 }, (_, c) => [r, c]);
+
+          if (isLineCompleteWithoutFree(coords, cardGrid, calledSet)) {
+            lines.push({
+              type: "row",
+              index: r,
+              coords,
+            });
+          }
+        }
+
+        // Columns
+        for (let c = 0; c < 5; c++) {
+          const coords = Array.from({ length: 5 }, (_, r) => [r, c]);
+
+          if (isLineCompleteWithoutFree(coords, cardGrid, calledSet)) {
+            lines.push({
+              type: "col",
+              index: c,
+              coords,
+            });
+          }
+        }
+
+        // Main diagonal
+        const diag1 = Array.from({ length: 5 }, (_, i) => [i, i]);
+
+        if (isLineCompleteWithoutFree(diag1, cardGrid, calledSet)) {
+          lines.push({
+            type: "diag",
+            index: 0,
+            coords: diag1,
+          });
+        }
+
+        // Anti diagonal
+        const diag2 = Array.from({ length: 5 }, (_, i) => [i, 4 - i]);
+
+        if (isLineCompleteWithoutFree(diag2, cardGrid, calledSet)) {
+          lines.push({
+            type: "diag",
+            index: 1,
+            coords: diag2,
+          });
+        }
+
+        if (lines.length >= 4) {
+          isWinner = true;
+          winningCoords = mergeCoords(lines.slice(0, 4));
+        }
+
+        break;
+      }
+      case "5 Lines Without Free": {
+        const lines = [];
+
+        // rows
+        for (let r = 0; r < 5; r++) {
+          const coords = Array.from({ length: 5 }, (_, c) => [r, c]);
+
+          if (isLineCompleteWithoutFree(coords, cardGrid, calledSet)) {
+            lines.push({ coords });
+          }
+        }
+
+        // columns
+        for (let c = 0; c < 5; c++) {
+          const coords = Array.from({ length: 5 }, (_, r) => [r, c]);
+
+          if (isLineCompleteWithoutFree(coords, cardGrid, calledSet)) {
+            lines.push({ coords });
+          }
+        }
+
+        // diagonals
+        const d1 = Array.from({ length: 5 }, (_, i) => [i, i]);
+        if (isLineCompleteWithoutFree(d1, cardGrid, calledSet))
+          lines.push({ coords: d1 });
+
+        const d2 = Array.from({ length: 5 }, (_, i) => [i, 4 - i]);
+        if (isLineCompleteWithoutFree(d2, cardGrid, calledSet))
+          lines.push({ coords: d2 });
+
+        if (lines.length >= 5) {
+          isWinner = true;
+          winningCoords = mergeCoords(lines.slice(0, 5));
         }
 
         break;
@@ -2031,7 +2318,21 @@ export default function DashboardScreen({
           case "Full House":
             playBoostedAudio("/voices/full_house.mp3");
             break;
-
+          case "3V + 2H + 1D":
+            playBoostedAudio("/voices/3v2h1d.mp3");
+            break;
+          case "Half Full House":
+            playBoostedAudio("/voices/halffullhouse.mp3");
+            break;
+          case "5 Lines Without Free":
+            playBoostedAudio("/voices/5lineswithoutfree.mp3");
+            break;
+          case "4 Lines Without Free":
+            playBoostedAudio("/voices/4lineswithoutfree.mp3");
+            break;
+          case "3 Squares":
+            playBoostedAudio("/voices/3square.mp3");
+            break;
           default:
             console.log("No matching winning pattern voice.");
         }
