@@ -636,6 +636,42 @@ export default function DashboardScreen({
         [4, 3],
         [4, 4],
       ],
+      [
+        [0, 0],
+        [0, 1],
+        [0, 2],
+        [0, 3],
+        [0, 4],
+        [1, 0],
+        [1, 1],
+        [1, 2],
+        [1, 3],
+        [2, 0],
+        [2, 1],
+        [2, 2],
+        [3, 0],
+        [3, 1],
+        [4, 0],
+      ],
+
+      // Bottom Diagonal Half
+      [
+        [0, 4],
+        [1, 3],
+        [1, 4],
+        [2, 2],
+        [2, 3],
+        [2, 4],
+        [3, 1],
+        [3, 2],
+        [3, 3],
+        [3, 4],
+        [4, 0],
+        [4, 1],
+        [4, 2],
+        [4, 3],
+        [4, 4],
+      ],
     ];
 
     for (const pattern of patterns) {
@@ -962,6 +998,18 @@ export default function DashboardScreen({
         if (lines.length >= 6) {
           isWinner = true;
           winningCoords = lines.slice(0, 6).flatMap((l) => l.coords);
+        }
+        break;
+      }
+      case "7 Lines Any Direction": {
+        const lines = getCompletedLinesWithCoords(
+          cardGrid,
+          currentCalledNumbersSet,
+        );
+
+        if (lines.length >= 7) {
+          isWinner = true;
+          winningCoords = lines.slice(0, 7).flatMap((l) => l.coords);
         }
         break;
       }
@@ -2257,7 +2305,9 @@ export default function DashboardScreen({
           case "6 Lines Any Direction":
             playBoostedAudio("/voices/6_lines_any_direction.m4a");
             break;
-
+          case "7 Lines Any Direction":
+            playBoostedAudio("/voices/7lines.mp3");
+            break;
           case "Two Vertical + One Horizontal":
             playBoostedAudio("/voices/two_vertical_one_horizontal.m4a");
             break;
@@ -2331,7 +2381,7 @@ export default function DashboardScreen({
             playBoostedAudio("/voices/4lineswithoutfree.mp3");
             break;
           case "3 Squares":
-            playBoostedAudio("/voices/3square.mp3");
+            playBoostedAudio("/voices/3squares.mp3");
             break;
           default:
             console.log("No matching winning pattern voice.");
