@@ -292,6 +292,9 @@ export default function CardManagementScreen({
             <option>4 Lines Without Free</option>
             <option>3 Squares</option>
             <option>7 Lines Any Direction</option>
+            <option>Big T + 3 Lines</option>
+            <option>2 Non-Crossing Lines + 2 Diagonals</option>
+            <option>5 Lines Without Diagonal</option>
           </select>
         </div>
 

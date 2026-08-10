@@ -682,6 +682,169 @@ export default function DashboardScreen({
 
     return null;
   };
+  const getBigTPatterns = () => {
+    return [
+      // Top T
+      [
+        [0, 0],
+        [0, 1],
+        [0, 2],
+        [0, 3],
+        [0, 4],
+        [1, 2],
+        [2, 2],
+        [3, 2],
+        [4, 2],
+      ],
+
+      // Bottom T
+      [
+        [4, 0],
+        [4, 1],
+        [4, 2],
+        [4, 3],
+        [4, 4],
+        [0, 2],
+        [1, 2],
+        [2, 2],
+        [3, 2],
+      ],
+
+      // Left T
+      [
+        [0, 0],
+        [1, 0],
+        [2, 0],
+        [3, 0],
+        [4, 0],
+        [2, 1],
+        [2, 2],
+        [2, 3],
+        [2, 4],
+      ],
+
+      // Right T
+      [
+        [0, 4],
+        [1, 4],
+        [2, 4],
+        [3, 4],
+        [4, 4],
+        [2, 0],
+        [2, 1],
+        [2, 2],
+        [2, 3],
+      ],
+    ];
+  };
+
+  const checkBigTAndThreeLines = (grid, calledSet) => {
+    const isMarkedCell = ([r, c]) => {
+      const val = grid[r][c];
+      return val === null || calledSet.has(Number(val));
+    };
+
+    // First find a completed Big T
+    const bigTPatterns = getBigTPatterns();
+
+    const winningT = bigTPatterns.find((pattern) =>
+      pattern.every(isMarkedCell),
+    );
+
+    if (!winningT) {
+      return null;
+    }
+
+    // Now find all completed normal lines
+    const lines = getCompletedLinesWithCoords(grid, calledSet);
+
+    if (lines.length < 3) {
+      return null;
+    }
+
+    // Big T + 3 completed lines
+    return {
+      tCoords: winningT,
+      lineCoords: lines.slice(0, 3).flatMap((line) => line.coords),
+    };
+  };
+  const checkTwoNonCrossingLinesAndTwoDiagonals = (grid, calledSet) => {
+    const lines = getCompletedLinesWithCoords(grid, calledSet);
+
+    const diagonals = lines.filter((line) => line.type === "diag");
+
+    // Both diagonals must be complete
+    if (diagonals.length !== 2) {
+      return null;
+    }
+
+    // Only horizontal + vertical lines participate
+    // in the "2 non-crossing lines" requirement.
+    const normalLines = lines.filter(
+      (line) => line.type === "row" || line.type === "col",
+    );
+
+    const nonCrossingSets = findNonCrossingSets(normalLines, 2);
+
+    if (nonCrossingSets.length === 0) {
+      return null;
+    }
+
+    return {
+      lines: nonCrossingSets[0],
+      diagonals,
+    };
+  };
+  const checkFiveLinesWithoutDiagonal = (grid, calledSet) => {
+    const lines = [];
+
+    // Rows
+    for (let r = 0; r < 5; r++) {
+      const coords = Array.from({ length: 5 }, (_, c) => [r, c]);
+
+      const complete = coords.every(([row, col]) => {
+        const val = grid[row][col];
+
+        return val === null || calledSet.has(Number(val));
+      });
+
+      if (complete) {
+        lines.push({
+          type: "row",
+          index: r,
+          coords,
+        });
+      }
+    }
+
+    // Columns
+    for (let c = 0; c < 5; c++) {
+      const coords = Array.from({ length: 5 }, (_, r) => [r, c]);
+
+      const complete = coords.every(([row, col]) => {
+        const val = grid[row][col];
+
+        return val === null || calledSet.has(Number(val));
+      });
+
+      if (complete) {
+        lines.push({
+          type: "col",
+          index: c,
+          coords,
+        });
+      }
+    }
+
+    // No diagonals here.
+
+    if (lines.length >= 5) {
+      return lines.slice(0, 5);
+    }
+
+    return null;
+  };
+
   const squares = [];
 
   for (let r = 0; r < 4; r++) {
@@ -1569,6 +1732,44 @@ export default function DashboardScreen({
           if (checkFourCornersWin(cardGrid, currentCalledNumbersSet))
             isWinner = true;
           break;
+        case "Big T + 3 Lines": {
+          const result = checkBigTAndThreeLines(cardGrid, calledSet);
+
+          if (result) {
+            isWinner = true;
+
+            winningCoords = mergeCoords([
+              { coords: result.tCoords },
+              ...getCompletedLinesWithCoords(cardGrid, calledSet).slice(0, 3),
+            ]);
+          }
+
+          break;
+        }
+        case "2 Non-Crossing Lines + 2 Diagonals": {
+          const result = checkTwoNonCrossingLinesAndTwoDiagonals(
+            cardGrid,
+            calledSet,
+          );
+
+          if (result) {
+            isWinner = true;
+
+            winningCoords = mergeCoords([...result.lines, ...result.diagonals]);
+          }
+
+          break;
+        }
+        case "5 Lines Without Diagonal": {
+          const lines = checkFiveLinesWithoutDiagonal(cardGrid, calledSet);
+
+          if (lines) {
+            isWinner = true;
+            winningCoords = mergeCoords(lines);
+          }
+
+          break;
+        }
         case "Cross":
           isWinner = checkCrossPatternWin(cardGrid, currentCalledNumbersSet);
           break;
@@ -2382,6 +2583,15 @@ export default function DashboardScreen({
             break;
           case "3 Squares":
             playBoostedAudio("/voices/3squares.mp3");
+            break;
+          case "Big T + 3 Lines":
+            playBoostedAudio("/voices/bigTand3.mp3");
+            break;
+          case "2 Non-Crossing Lines + 2 Diagonals":
+            playBoostedAudio("/voices/twononcroosandtwod.mp3");
+            break;
+          case "5 Lines Without Diagonal":
+            playBoostedAudio("/voices/5lineswithoutd.mp3");
             break;
           default:
             console.log("No matching winning pattern voice.");
