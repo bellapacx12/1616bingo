@@ -744,7 +744,7 @@ export default function DashboardScreen({
       return val === null || calledSet.has(Number(val));
     };
 
-    // First find a completed Big T
+    // Find a completed Big T
     const bigTPatterns = getBigTPatterns();
 
     const winningT = bigTPatterns.find((pattern) =>
@@ -755,17 +755,65 @@ export default function DashboardScreen({
       return null;
     }
 
-    // Now find all completed normal lines
+    // Find which T orientation was completed
+    const winningTIndex = bigTPatterns.indexOf(winningT);
+
+    // Get all completed normal lines
     const lines = getCompletedLinesWithCoords(grid, calledSet);
 
-    if (lines.length < 3) {
+    // Lines that belong to the Big T itself
+    let excludedLines = [];
+
+    switch (winningTIndex) {
+      // Top T
+      case 0:
+        excludedLines = [
+          { type: "row", index: 0 },
+          { type: "col", index: 2 },
+        ];
+        break;
+
+      // Bottom T
+      case 1:
+        excludedLines = [
+          { type: "row", index: 4 },
+          { type: "col", index: 2 },
+        ];
+        break;
+
+      // Left T
+      case 2:
+        excludedLines = [
+          { type: "col", index: 0 },
+          { type: "row", index: 2 },
+        ];
+        break;
+
+      // Right T
+      case 3:
+        excludedLines = [
+          { type: "col", index: 4 },
+          { type: "row", index: 2 },
+        ];
+        break;
+    }
+
+    // Remove the two lines that form the Big T
+    const otherLines = lines.filter((line) => {
+      return !excludedLines.some(
+        (excluded) =>
+          excluded.type === line.type && excluded.index === line.index,
+      );
+    });
+
+    // We need 3 OTHER completed lines
+    if (otherLines.length < 3) {
       return null;
     }
 
-    // Big T + 3 completed lines
     return {
       tCoords: winningT,
-      lineCoords: lines.slice(0, 3).flatMap((line) => line.coords),
+      lineCoords: otherLines.slice(0, 3).flatMap((line) => line.coords),
     };
   };
   const checkTwoNonCrossingLinesAndTwoDiagonals = (grid, calledSet) => {
