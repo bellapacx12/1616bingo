@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import ModalReport from "./ModalReport";
 import CardModal from "./showCard";
 
-const TOTAL_CARDS = 1500;
+const TOTAL_CARDS = 3500;
 const DEFAULT_COLOR = "#3B82F6"; // blue shade
 
 export default function CardManagementScreen({
